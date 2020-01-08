@@ -14,15 +14,15 @@ def create_app():
 
     @app.route('/', methods=['GET', 'POST'])
     def root():
-        return render_template('base.html', title='Contents', shape='')
+        return render_template('base.html', title='Contents')
 
     @app.route('/reset')
     def reset():
         DB.drop_all()
         engine = DB.get_engine()
-        sql.execute('DROP TABLE med1;', engine)
-        sql.execute('DROP TABLE symptoms2_medcab3;', engine)
-        return render_template('base.html', title='Reset', shape='')
+        sql.execute('DROP TABLE IF EXISTS med1;', engine)
+        sql.execute('DROP TABLE IF EXISTS symptoms2_medcab3;', engine)
+        return render_template('reset.html', title='Reset')
 
     @app.route('/populate', methods=['GET', 'POST'])
     def populate():
@@ -62,5 +62,5 @@ def create_app():
             df.to_sql('symptoms2_medcab3', con=engine)
             DB.session.commit()
 
-        return render_template('base.html', title='Populate', shape='')
+        return render_template('populate.html', title='Populate')
     return app

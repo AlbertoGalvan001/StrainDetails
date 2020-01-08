@@ -6,7 +6,7 @@ DB = SQLAlchemy()
 
 class Effects_list(DB.Model):
     id = DB.Column(DB.Integer, primary_key=True)
-    effect_terms = DB.Column(DB.String(120), unique=True, nullable=False)
+    effect_terms = DB.Column(DB.String(120), nullable=False)
 
     def __repr__(self):
         return '<Effects_list {}>'.format(self.effect_terms)

@@ -5,6 +5,7 @@ import pandas as pd
 from pandas.io import sql
 import tempfile
 import os
+from .populate import *
 
 def create_app():
     app = Flask(__name__)
@@ -12,55 +13,35 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///MedCabinet.db"
     DB.init_app(app)
 
+    #Base landing page
     @app.route('/', methods=['GET', 'POST'])
     def root():
         return render_template('base.html', title='Contents')
 
+    #Reset will drop all tables, including those not in models
     @app.route('/reset')
     def reset():
         DB.drop_all()
         engine = DB.get_engine()
         sql.execute('DROP TABLE IF EXISTS med1;', engine)
-        sql.execute('DROP TABLE IF EXISTS symptoms2_medcab3;', engine)
+        sql.execute('DROP TABLE IF EXISTS symptoms_medcab3;', engine)
         return render_template('reset.html', title='Reset')
 
+    #Populate will load static data and data from files
     @app.route('/populate', methods=['GET', 'POST'])
     def populate():
         DB.create_all()
-        list_of_effects = ['Aroused', 'Creative', 'Energetic', 'Euphoric',
-                          'Focused', 'Giggly', 'Happy', 'Hungry', 'Relaxed',
-                          'Sleepy', 'Talkative', 'Tingly', 'Uplifted']
-        for x in range(len(list_of_effects)):
-            DB.session.add(Effects_list(id=x,effect_terms=list_of_effects[x]))
-            DB.session.commit()
-        list_of_flavors = ['Ammonia', 'Apple','Apricot', 'Berry', 'Blue',
-                          'Blueberry', 'Citrus', 'Cheese', 'Chemical',
-                          'Chestnut', 'Diesel', 'Earthy', 'Flowery',
-                          'Fruit', 'Grape', 'Grapefruit', 'Honey',
-                          'Lavender', 'Lemon', 'Mango', 'Menthol',
-                          'Mint', 'Minty', 'Nutty', 'Orange', 'Peach',
-                          'Pepper','Pine','Pineapple','Pungent','Sage',
-                          'Skunk','Spicy/Herbal','Strawberry','Sweet',
-                          'Tea','Tobacco','Tree','Tropical','Vanilla',
-                          'Violet','Woody']
-        for x in range(len(list_of_flavors)):
-                DB.session.add(Flavors_list(id=x,flavor_terms=list_of_flavors[x]))
-                DB.session.commit()
+        populate_effects()
+        populate_flavors()
         #Read from file
-        THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
-        engine = DB.get_engine()
-
-        my_file = os.path.join(THIS_FOLDER, 'med1.csv')
-        if my_file:
-            df = pd.read_csv(my_file)
-            df.to_sql('med1', con=engine)
-            DB.session.commit()
-
-        my_file = os.path.join(THIS_FOLDER, 'symptoms6_medcab3.csv')
-        if my_file:
-            df = pd.read_csv(my_file)
-            df.to_sql('symptoms2_medcab3', con=engine)
-            DB.session.commit()
+        populate_med1()
+        populate_symptoms_medcab()
+        populate_cbd()
+        populate_feels()
+        populate_hurts()
+        populate_reviews()
+        populate_helps()
 
         return render_template('populate.html', title='Populate')
+
     return app
